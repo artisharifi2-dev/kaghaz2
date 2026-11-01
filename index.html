@@ -1,0 +1,695 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>کارخانه کاغذسازی</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one 16:9 pixel stage, centered; DOM HUD, hotbar and panels sit on top of it. Palette from a cream plane-cabin wall with navy seats and teal floor trim. */
+:root{--ink:#0a0c11;--panel:#141923;--panel2:#1d2431;--cream:#ece6cf;--muted:#9aa3b2;--blue:#2d5f9a;--teal:#46a39a;--amber:#e3a63b;--red:#d1543f;--green:#6fae4f;--line:#2b3445;--f-ui:"Vazirmatn",Tahoma,"Segoe UI",sans-serif;--f-pix:"Silkscreen","Courier New",monospace;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--cream);font-family:var(--f-ui);padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#wrap{height:100%;display:grid;place-items:center}
+#stage{position:relative;width:640px;height:360px;background:#000;overflow:hidden;border-radius:calc(var(--u)*.6);box-shadow:0 0 0 1px var(--line);--u:6.4px;font-size:calc(var(--u)*2.1)}
+canvas.full{position:absolute;inset:0;width:100%;height:100%;display:block}
+#px{image-rendering:crisp-edges;image-rendering:pixelated}
+#tx{pointer-events:none}
+#crt{position:absolute;inset:0;pointer-events:none;z-index:30;background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.13) 2px 3px),radial-gradient(ellipse at center,transparent 62%,rgba(0,0,0,.5) 100%)}
+.hud{position:absolute;pointer-events:none;z-index:5}
+#timer{left:2.4%;top:3%;font:700 calc(var(--u)*3.6) var(--f-pix);letter-spacing:.04em;color:var(--cream);text-shadow:0 calc(var(--u)*.3) 0 #000}
+#stats{right:2.2%;top:2.6%;display:flex;gap:calc(var(--u)*1.6);align-items:center;direction:rtl;font-weight:600;text-shadow:0 1px 0 #000}
+#hearts{letter-spacing:.1em;color:var(--red);font-size:1.25em}
+#hearts .off{color:#4a3a3a}
+#money{color:var(--amber)}
+#obj{left:50%;top:2.6%;transform:translateX(-50%);width:44%;text-align:center;direction:rtl;background:rgba(10,12,17,.76);border:1px solid var(--line);padding:calc(var(--u)*.7) calc(var(--u)*1.2);border-radius:3px;line-height:1.55;font-size:.92em}
+#obj b{color:var(--amber);font-weight:800}
+#prompt{right:2.5%;bottom:14.5%;display:flex;align-items:center;gap:calc(var(--u)*1.2);direction:rtl;font-weight:800;font-size:1.25em;text-shadow:0 2px 0 #000}
+#prompt kbd{font:700 .9em var(--f-pix);width:2.1em;height:2.1em;display:grid;place-items:center;background:#3b4150;border:1px solid #6a7285;border-radius:3px;color:#fff;box-shadow:0 2px 0 #000}
+#hotbar{left:50%;bottom:1.8%;transform:translateX(-50%);display:flex;gap:calc(var(--u)*.7)}
+.slot{position:relative;width:calc(var(--u)*7.4);height:calc(var(--u)*7.4);background:rgba(8,10,14,.82);border:1px solid #4a5163;display:grid;place-items:center}
+.slot canvas{width:72%;height:72%;image-rendering:pixelated}
+.slot i{position:absolute;right:calc(var(--u)*.6);bottom:calc(var(--u)*.2);font:400 calc(var(--u)*1.7)/1 var(--f-pix);color:#c9cfdb;font-style:normal}
+.slot b{position:absolute;left:calc(var(--u)*.6);top:calc(var(--u)*.3);font:700 calc(var(--u)*1.9)/1 var(--f-pix);color:#fff;text-shadow:0 1px 0 #000}
+#toast{left:50%;top:15%;transform:translateX(-50%);max-width:70%;direction:rtl;text-align:center;background:var(--cream);color:#1b1f2a;font-weight:800;padding:calc(var(--u)*.8) calc(var(--u)*1.8);border-radius:3px;box-shadow:0 3px 0 rgba(0,0,0,.6);opacity:0;transition:opacity .2s;z-index:12}
+#toast.on{opacity:1}
+#helpbtn{position:absolute;left:2.4%;top:11%;z-index:8;pointer-events:auto;width:calc(var(--u)*5.2);height:calc(var(--u)*5.2);font:800 calc(var(--u)*2.6) var(--f-ui);background:rgba(10,12,17,.76);color:var(--cream);border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:0}
+#touch{display:none;position:absolute;inset:0;z-index:9;pointer-events:none}
+#touch button{position:absolute;pointer-events:auto;width:max(48px,calc(var(--u)*9));height:max(48px,calc(var(--u)*9));border-radius:50%;border:2px solid rgba(236,230,207,.55);background:rgba(10,12,17,.55);color:var(--cream);font:700 calc(var(--u)*3.6) var(--f-pix);padding:0;touch-action:none}
+#bL{left:2.5%;bottom:12%}
+#bR{left:calc(2.5% + max(56px,calc(var(--u)*10.5)));bottom:12%}
+#bE{right:2.5%;bottom:22%;background:rgba(227,166,59,.55)!important;color:#fff!important}
+#touch button:active,#touch button.dn{background:rgba(227,166,59,.8)}
+@media (pointer:coarse){#touch{display:block}#prompt{bottom:30%}}
+body.touch #touch{display:block}
+#rot{display:none;position:fixed;left:0;right:0;bottom:6px;text-align:center;font-size:12px;color:var(--muted);direction:rtl}
+@media (orientation:portrait){#rot{display:block}}
+.ov{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:rgba(6,8,12,.9);direction:rtl}
+.ov[hidden]{display:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:calc(var(--u)*.7);padding:calc(var(--u)*2.2) calc(var(--u)*2.8);max-height:95%;max-width:94%;overflow:auto;box-shadow:0 calc(var(--u)*.8) 0 rgba(0,0,0,.45)}
+h1{margin:0;font-weight:800;font-size:calc(var(--u)*5.2);line-height:1.2;letter-spacing:-.01em}
+h2{margin:0 0 calc(var(--u)*1.2);font-weight:800;font-size:calc(var(--u)*3)}
+.by{color:var(--teal);font-weight:600;margin:calc(var(--u)*.6) 0 calc(var(--u)*1.6)}
+.blocks{display:flex;gap:calc(var(--u)*.5);margin:calc(var(--u)*1.2) 0}
+.blocks i{width:calc(var(--u)*3);height:calc(var(--u)*1.2);background:var(--cream)}
+.blocks i:nth-child(2){background:var(--blue)}.blocks i:nth-child(3){background:var(--teal)}.blocks i:nth-child(4){background:var(--amber)}
+.btn{font:700 1em var(--f-ui);border:0;background:var(--blue);color:#fff;padding:.55em 1.15em;border-radius:3px;cursor:pointer;box-shadow:0 3px 0 #1b3a63;min-height:44px}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #1b3a63}
+.btn.alt{background:var(--panel2);color:var(--cream);box-shadow:0 3px 0 #0b0f16}
+.btn.go{background:var(--amber);color:#241700;box-shadow:0 3px 0 #8a5f12}
+.btn:focus-visible,.opt:focus-visible,#helpbtn:focus-visible,input:focus-visible,.sw:focus-visible{outline:2px solid var(--cream);outline-offset:2px}
+.row{display:flex;gap:calc(var(--u)*1.2);flex-wrap:wrap;align-items:center}
+#setup .panel{display:grid;grid-template-columns:auto minmax(0,1fr);gap:calc(var(--u)*3);align-items:start;width:min(94%,calc(var(--u)*92))}
+#pv{width:calc(var(--u)*17);height:calc(var(--u)*19);image-rendering:pixelated;background:linear-gradient(#d9d3bb 0 70%,#2a3140 70%);border:1px solid var(--line);border-radius:3px}
+.opts{display:grid;gap:calc(var(--u)*.8);margin:calc(var(--u)*1.2) 0}
+.opts .lb{display:flex;align-items:center;gap:calc(var(--u)*1);min-width:0}
+.opts .lb span{min-width:calc(var(--u)*7);color:var(--muted);font-size:.9em}
+.sw{width:calc(var(--u)*3.4);height:calc(var(--u)*3.4);min-width:26px;min-height:26px;border:2px solid transparent;border-radius:3px;cursor:pointer;padding:0;font:600 .8em var(--f-ui);color:#fff}
+.sw.on{border-color:var(--cream)}
+.sw.txt{width:auto;padding:0 .7em;background:var(--panel2);color:var(--cream);border-color:var(--line)}
+.sw.txt.on{border-color:var(--cream);background:var(--blue)}
+#nm{font:600 1em var(--f-ui);background:#0d1118;color:var(--cream);border:1px solid var(--line);border-radius:3px;padding:.45em .7em;width:min(100%,calc(var(--u)*30));min-height:40px;direction:rtl}
+#guide .panel{width:min(94%,calc(var(--u)*88))}
+#guide ol,#guide ul{margin:0;padding:0 calc(var(--u)*2.6) 0 0;line-height:1.75}
+#guide li{margin-bottom:calc(var(--u)*.5)}
+#guide .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*2.4)}
+#guide h3{margin:0 0 calc(var(--u)*.6);color:var(--amber);font-size:1.02em}
+#guide kbd{font:700 .8em var(--f-pix);background:#3b4150;border:1px solid #6a7285;border-radius:3px;padding:.1em .45em;color:#fff}
+#quiz .panel{width:min(94%,calc(var(--u)*76))}
+#qlab{color:var(--teal);font-weight:600;font-size:.9em}
+#qtxt{font-weight:800;font-size:1.4em;line-height:1.6;margin:calc(var(--u)*.6) 0 calc(var(--u)*1.4)}
+#qopts{display:grid;gap:calc(var(--u)*.9)}
+.opt{display:flex;gap:calc(var(--u)*1.2);align-items:center;text-align:right;background:var(--panel2);color:var(--cream);border:1px solid var(--line);border-radius:3px;padding:.6em .9em;font:600 1em var(--f-ui);cursor:pointer;min-height:44px}
+.opt em{font:700 .8em var(--f-pix);font-style:normal;background:#0d1118;color:var(--amber);min-width:1.9em;height:1.9em;display:grid;place-items:center;border-radius:3px}
+.opt.good{background:#24442b;border-color:var(--green)}
+.opt.bad{background:#4b2a26;border-color:var(--red)}
+#qfb{margin-top:calc(var(--u)*1.2);line-height:1.7}
+#qfb .t{font-weight:800}
+#mini{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:58%;z-index:11;direction:rtl;text-align:center;background:rgba(10,12,17,.9);border:1px solid var(--line);border-radius:4px;padding:calc(var(--u)*1.6) calc(var(--u)*2);cursor:pointer}
+#mini[hidden]{display:none}
+#mt{font-weight:800;font-size:1.15em}
+.bar{position:relative;height:calc(var(--u)*3.6);margin:calc(var(--u)*1.2) 0;background:#0d1118;border:1px solid #4a5163}
+.bar .zone{position:absolute;top:0;bottom:0;background:rgba(111,174,79,.75)}
+.bar .mk{position:absolute;top:-3px;bottom:-3px;width:calc(var(--u)*.8);background:var(--cream);box-shadow:0 0 0 1px #000}
+.prog{height:calc(var(--u)*1.1);background:#0d1118;border:1px solid #4a5163}
+.prog i{display:block;height:100%;width:0;background:var(--amber)}
+#mh{color:var(--muted);margin-top:calc(var(--u)*.9);font-size:.88em}
+#mm{color:var(--red);font-weight:800;min-height:1.4em;font-size:.95em}
+#end .panel{text-align:center;width:min(94%,calc(var(--u)*60))}
+.stars{font-size:calc(var(--u)*5);letter-spacing:.15em;color:var(--amber)}
+.stars .off{color:#3b3f4b}
+#stats2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*.8);margin:calc(var(--u)*1.4) 0;text-align:right}
+#stats2 div{background:var(--panel2);padding:.45em .8em;border-radius:3px;display:flex;justify-content:space-between;gap:.6em}
+#stats2 b{color:var(--amber)}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+<div id="wrap">
+<div id="stage">
+<canvas id="px" class="full"></canvas>
+<canvas id="tx" class="full"></canvas>
+<div id="crt"></div>
+<div id="timer" class="hud">00:00</div>
+<div id="obj" class="hud"></div>
+<div id="stats" class="hud"><span id="hearts"></span><span id="money"></span></div>
+<button id="helpbtn" type="button" aria-label="راهنما">؟</button>
+<div id="toast" class="hud" role="status"></div>
+<div id="prompt" class="hud" hidden><kbd>E</kbd><span id="ptxt"></span></div>
+<div id="hotbar" class="hud"></div>
+<div id="mini" hidden><div id="mt"></div><div class="bar"><i class="zone"></i><i class="mk"></i></div><div class="prog"><i></i></div><div id="mm"></div><div id="mh"></div></div>
+<div id="touch"><button id="bL" type="button" aria-label="چپ">&lt;</button><button id="bR" type="button" aria-label="راست">&gt;</button><button id="bE" type="button" aria-label="اقدام">E</button></div>
+
+<div id="setup" class="ov" hidden><div class="panel">
+ <canvas id="pv" width="34" height="38"></canvas>
+ <div>
+  <h1 id="sTitle">کارخانه کاغذسازی</h1>
+  <div class="blocks"><i></i><i></i><i></i><i></i></div>
+  <div class="by">ساخته‌شده توسط آرتمن شریفی</div>
+  <label for="nm" style="color:var(--muted);font-size:.9em">اسم کاراکتر</label><br>
+  <input id="nm" maxlength="14" placeholder="مثلاً: علی" autocomplete="off">
+  <div class="opts" id="opts"></div>
+  <div class="row"><button class="btn go" id="sGo" type="button">شروع بازی</button><button class="btn alt" id="sGuide" type="button">راهنما</button></div>
+ </div>
+</div></div>
+
+<div id="guide" class="ov" hidden><div class="panel">
+ <h2>راهنمای بازی</h2>
+ <div class="cols">
+  <div><h3>کنترل‌ها</h3><ul>
+   <li>حرکت: <kbd>←</kbd> <kbd>→</kbd> یا <kbd>A</kbd> <kbd>D</kbd> (در گوشی: دکمه‌های &lt; و &gt;)</li>
+   <li>کار کردن، برداشتن، پریدن: <kbd>E</kbd> یا <kbd>Space</kbd> (در گوشی: دکمهٔ E)</li>
+   <li>جواب سؤال: <kbd>1</kbd> تا <kbd>4</kbd> یا لمس گزینه</li>
+   <li>بستن راهنما: <kbd>Esc</kbd> یا دکمهٔ «؟»</li>
+  </ul>
+  <h3 style="margin-top:.8em">قانون‌ها</h3><ul>
+   <li>سه جان داری (♥). جواب غلط یا خطا در کار، یک جان کم می‌کند.</li>
+   <li>کلاه ایمنی را حتماً بپوش (رختکن)، وگرنه ماشین‌ها کار نمی‌کنند.</li>
+   <li>زمان را تندتر تمام کنی، ستارهٔ بیشتر می‌گیری.</li>
+  </ul></div>
+  <div><h3>مراحل کار</h3><ol>
+   <li>رختکن: لباس عوض کن و کلاه ایمنی بپوش.</li>
+   <li>انبار چوب: چند بار <kbd>E</kbd> بزن و تنه‌ها را بردار.</li>
+   <li>پوست‌کن و خردکن: تنه‌ها را خرد کن.</li>
+   <li>دیگ پخت: دما را در ناحیهٔ سبز نگه دار تا خمیر درست شود.</li>
+   <li>رنگ‌بری و شستشو: خمیر را سفید کن.</li>
+   <li>ماشین کاغذ: کاغذ را درست کن.</li>
+   <li>برش و بسته‌بندی: کارتن بساز.</li>
+   <li>بارگیری: کارتن‌ها را در وانت بگذار و سوار شو.</li>
+   <li>جادهٔ شهر: با <kbd>E</kbd> از روی مانع‌ها بپر.</li>
+   <li>کاغذفروشی: کارتن‌ها را بفروش و حساب کن.</li>
+  </ol></div>
+ </div>
+ <div class="row" style="margin-top:1em"><button class="btn go" id="gClose" type="button">فهمیدم</button></div>
+</div></div>
+
+<div id="quiz" class="ov" hidden><div class="panel">
+ <div id="qlab"></div><div id="qtxt"></div><div id="qopts"></div><div id="qfb"></div>
+</div></div>
+
+<div id="end" class="ov" hidden><div class="panel">
+ <h2 id="eTitle"></h2><div class="stars" id="eStars"></div><div id="stats2"></div>
+ <div class="row" style="justify-content:center" id="eBtns"></div>
+</div></div>
+</div>
+</div>
+<div id="rot">برای تجربهٔ بهتر، گوشی را افقی بگیرید.</div>
+<script>
+(()=>{'use strict';
+const $=s=>document.querySelector(s);
+const W=480,H=270,WORLD=3100,FY=232,GY=222;
+const faD='۰۱۲۳۴۵۶۷۸۹';
+const fa=n=>String(n).replace(/\d/g,d=>faD[d]);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const px=$('#px'),cx=px.getContext('2d'),tx=$('#tx'),tc=tx.getContext('2d');
+px.width=W;px.height=H;
+const stage=$('#stage'),wrap=$('#wrap');
+let S=2,camX=0,shake=0;
+function fit(){
+ const aw=wrap.clientWidth,ah=wrap.clientHeight;
+ let w=aw,h=w*9/16;if(h>ah){h=ah;w=h*16/9}
+ w=Math.max(200,Math.floor(w));h=Math.floor(w*9/16);
+ stage.style.width=w+'px';stage.style.height=h+'px';stage.style.setProperty('--u',(w/100)+'px');
+ const d=Math.min(window.devicePixelRatio||1,2);tx.width=Math.round(w*d);tx.height=Math.round(h*d);S=tx.width/W;
+}
+addEventListener('resize',fit);
+const R=(x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(Math.round(x),Math.round(y),w,h)};
+const RW=(x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(Math.round(x-camX),Math.round(y),w,h)};
+function disc(x,y,r,c){cx.fillStyle=c;for(let j=-r;j<=r;j++){const w=Math.round(Math.sqrt(r*r-j*j));cx.fillRect(Math.round(x-camX)-w,Math.round(y)+j,w*2,1)}}
+function discS(x,y,r,c){cx.fillStyle=c;for(let j=-r;j<=r;j++){const w=Math.round(Math.sqrt(r*r-j*j));cx.fillRect(Math.round(x)-w,Math.round(y)+j,w*2,1)}}
+function T(s,x,y,size,col,al,wt,bg){
+ tc.save();tc.font=(wt||800)+' '+(size*S)+'px Vazirmatn,Tahoma,sans-serif';tc.textAlign=al||'center';tc.textBaseline='middle';tc.direction='rtl';
+ if(bg){const w=tc.measureText(s).width+8*S;tc.fillStyle=bg;tc.fillRect(x*S-w/2,(y-size*.85)*S,w,size*1.7*S)}
+ tc.fillStyle=col;tc.fillText(s,x*S,y*S);tc.restore();
+}
+function shade(h,a){const n=parseInt(h.slice(1),16);const f=v=>clamp(v+a,0,255);return '#'+[(n>>16)&255,(n>>8)&255,n&255].map(v=>f(v).toString(16).padStart(2,'0')).join('')}
+
+const LOOK={hair:['#1b1410','#4a2e1b','#a8742f','#bdbdbd','#8a2f2f'],skin:['#f1cfae','#e0ac7e','#c58a5c','#8c5a3a'],shirt:['#46a39a','#d1543f','#2d5f9a','#e3a63b','#6fae4f','#8a5fb0'],pants:['#232a3a','#5a4a3a','#3b5d8a','#4a5a2f'],hat:['بدون کلاه','کلاه ایمنی','کلاه لبه‌دار']};
+let A={name:'',hair:0,skin:1,shirt:0,pants:0,hat:2};
+let best=0;
+const KEY='paper-factory-v1';
+function save(){try{localStorage.setItem(KEY,JSON.stringify({A,best}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){Object.assign(A,d.A||{});best=d.best||0}}catch(e){}}
+
+function drawChar(c,x,y,a,dir,fr){
+ x=Math.round(x);y=Math.round(y);const s=dir>=0?1:-1;
+ const f=(rx,ry,w,h,col)=>{c.fillStyle=col;c.fillRect(s>0?x+rx:x-rx-w,y+ry,w,h)};
+ const sk=LOOK.skin[a.skin],hr=LOOK.hair[a.hair],sh=LOOK.shirt[a.shirt],pn=LOOK.pants[a.pants];
+ f(-3,-10,3,8-(fr===3?1:0),shade(pn,-20));f(0,-10,3,8-(fr===1?1:0),pn);
+ f(-3,-2-(fr===3?1:0),4,2,'#14161c');f(0,-2-(fr===1?1:0),5,2,'#14161c');
+ f(-4,-19,8,9,sh);f(-4,-11,8,1,shade(sh,-35));
+ const sw=fr===1?1:fr===3?-1:0;
+ f(-1+sw,-18,3,7,shade(sh,-22));f(-1+sw,-11,3,2,sk);
+ f(-1,-21,3,2,sk);f(-3,-27,6,7,sk);f(1,-25,1,1,'#111');
+ f(-4,-27,2,5,hr);f(-3,-28,6,3,hr);
+ if(a.hat===1){f(-4,-31,8,4,'#f0c230');f(-1,-32,3,1,'#f0c230');f(-4,-28,9,1,'#c79a1a')}
+ else if(a.hat===2){f(-4,-30,8,3,'#2d5f9a');f(2,-28,4,1,'#2d5f9a')}
+}
+const NPC=(sh,pn,hair,skin,hat)=>({hair,skin,shirt:sh,pants:pn,hat});
+
+function icon(c,t){
+ c.clearRect(0,0,16,16);const r=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
+ if(t==='log'){r(1,5,12,7,'#7b4d22');r(1,5,12,1,'#9a6a35');r(11,5,4,7,'#e1bd84');r(12,7,2,3,'#b98c52');r(3,8,6,1,'#5c3716')}
+ else if(t==='chips'){r(2,9,12,4,'#c7a46a');r(4,6,4,4,'#d9b982');r(8,7,4,3,'#b38c52');r(6,4,3,3,'#e0c28c');r(3,11,3,2,'#8d6a36')}
+ else if(t==='pulp'){r(2,8,12,6,'#8a7a55');r(3,6,10,4,'#c9bd94');r(5,5,6,2,'#ddd2aa')}
+ else if(t==='white'){r(2,8,12,6,'#aeb3b8');r(3,6,10,4,'#eceff1');r(5,5,6,2,'#fff')}
+ else if(t==='paper'){r(3,3,10,11,'#f4f1e6');r(3,3,2,11,'#c8c4b0');r(11,3,2,11,'#d9d5c4');r(6,6,4,1,'#bdb9a6');r(6,9,4,1,'#bdb9a6')}
+ else if(t==='box'){r(2,4,12,10,'#b98a52');r(2,4,12,2,'#d2a468');r(7,4,2,10,'#e8d6a8');r(10,9,3,2,'#fff')}
+}
+const ITEM={log:'تنهٔ درخت',chips:'خرده‌چوب',pulp:'خمیر کاغذ',white:'خمیر سفید',paper:'رول کاغذ',box:'کارتن کاغذ'};
+let inv=Array(8).fill(null);
+const bar=$('#hotbar');
+for(let i=0;i<8;i++){const d=document.createElement('div');d.className='slot';d.innerHTML='<canvas width="16" height="16"></canvas><i>'+(i+1)+'</i><b></b>';bar.appendChild(d)}
+function renderBar(){
+ bar.querySelectorAll('.slot').forEach((d,i)=>{const s=inv[i],c=d.querySelector('canvas').getContext('2d');
+  if(s){icon(c,s.t);d.title=ITEM[s.t]}else{c.clearRect(0,0,16,16);d.title=''}
+  d.querySelector('b').textContent=s&&s.n>1?s.n:''});
+}
+function addItem(t,n){n=n||1;let s=inv.find(x=>x&&x.t===t);if(s)s.n+=n;else{const i=inv.indexOf(null);if(i>=0)inv[i]={t,n}}renderBar()}
+const countOf=t=>{const s=inv.find(x=>x&&x.t===t);return s?s.n:0};
+function removeAll(t){const i=inv.findIndex(x=>x&&x.t===t);let n=0;if(i>=0){n=inv[i].n;inv[i]=null}renderBar();return n}
+
+let ac=null;
+function beep(f,d,type,v,delay){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=type||'square';o.frequency.value=f;const t=ac.currentTime+(delay||0);g.gain.setValueAtTime(v||.04,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
+const sfx={ok(){beep(660,.08);beep(880,.12,'square',.04,.08)},bad(){beep(150,.28,'sawtooth',.05)},step(){beep(520,.05,'square',.025)},win(){[523,659,784,1046].forEach((f,i)=>beep(f,.15,'square',.045,i*.12))},hit(){beep(110,.2,'sawtooth',.06)}};
+
+let toastT=0;
+function toast(s,ms){const t=$('#toast');t.textContent=s;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2800)}
+
+const G={run:false,paused:false,lock:false,dead:false,scene:'menu',step:0,hearts:3,money:0,time:0,day:1,need:3,price:200,boxes:0,x:70,dir:1,fr:0,ft:0,near:null,onAct:null,hits:0,lostHearts:0,drive:null,t:0};
+const hold=()=>G.paused||!G.run;
+
+function updHud(){
+ const t=Math.floor(G.time),m=String(Math.floor(t/60)).padStart(2,'0'),s=String(t%60).padStart(2,'0');
+ $('#timer').textContent=m+':'+s;
+ $('#hearts').innerHTML=[0,1,2].map(i=>'<span class="'+(i<G.hearts?'':'off')+'">♥</span>').join('');
+ $('#money').textContent=fa(G.money)+' هزار تومان';
+}
+function objText(){
+ const n=G.need,lg=countOf('log');
+ switch(G.scene){
+ case 'factory':
+  if(G.step===0)return 'کلاه ایمنی را در <b>رختکن</b> بپوش، بعد در <b>انبار چوب</b> '+fa(n)+' تنه بردار ('+fa(lg)+'/'+fa(n)+')';
+  if(G.step===1)return 'تنه‌ها را ببر <b>پوست‌کن و خردکن</b>';
+  if(G.step===2)return 'خرده‌چوب را ببر <b>دیگ پخت خمیر</b>';
+  if(G.step===3)return 'خمیر را ببر <b>رنگ‌بری و شستشو</b>';
+  if(G.step===4)return 'خمیر سفید را ببر <b>ماشین کاغذ</b>';
+  if(G.step===5)return 'رول کاغذ را ببر <b>برش و بسته‌بندی</b>';
+  if(G.step===6)return 'کارتن‌ها را ببر <b>رمپ بارگیری</b> و داخل وانت بگذار';
+  return 'کنار وانت <b>E</b> بزن و سوار شو';
+ case 'drive':return 'با <b>E</b> از روی مانع‌ها بپر. تا شهر '+fa(Math.max(0,Math.ceil((G.drive.len-G.drive.dist)/10)))+' متر مانده';
+ case 'city':return 'کارتن‌ها را ببر <b>لوازم‌التحریر نگین</b> و بفروش';
+ }
+ return '';
+}
+let lastObj='';
+function updObj(){const s=objText();if(s!==lastObj){lastObj=s;$('#obj').innerHTML=s}$('#obj').hidden=!s}
+let lastP=null;
+function setPrompt(s){if(s===lastP)return;lastP=s;const p=$('#prompt');if(!s){p.hidden=true;return}p.hidden=false;$('#ptxt').textContent=s}
+function loseHeart(){
+ G.hearts--;G.lostHearts++;sfx.bad();updHud();
+ if(G.hearts<=0&&!G.dead){G.dead=true;setTimeout(()=>showEnd(false),600)}
+}
+
+/* ---------- quiz ---------- */
+const QZ=[
+{t:'a',q:'پیش از خرد کردن چوب، کدام کار انجام می‌شود؟',o:['پوست درخت جدا می‌شود','چوب رنگ می‌شود','چوب در آب جوشانده می‌شود','چوب پرس می‌شود'],e:'اول پوست تنه‌ها را جدا می‌کنند، بعد چوب را خرد می‌کنند.'},
+{t:'a',q:'کاغذ بیشتر از چه چیزی ساخته می‌شود؟',o:['چوب درخت','سنگ معدن','پلاستیک','شیشه'],e:'کاغذ از الیاف ریز چوب درخت ساخته می‌شود.'},
+{t:'a',q:'چرا چوب را به تکه‌های کوچک خرد می‌کنند؟',o:['تا در دیگ زودتر و بهتر پخته شود','تا سنگین‌تر شود','تا رنگی شود','تا بسوزد'],e:'تکهٔ کوچک‌تر زودتر پخته می‌شود و الیافش راحت‌تر جدا می‌شود.'},
+{t:'a',q:'کاغذ اولین بار در کدام کشور ساخته شد؟',o:['چین','برزیل','کانادا','استرالیا'],e:'ساخت کاغذ حدود دو هزار سال پیش در چین شروع شد.'},
+{t:'b',q:'خرده‌چوب‌ها در دیگ با چه چیزی پخته می‌شوند؟',o:['آب داغ، بخار و مواد شیمیایی','فقط یخ','نمک و شکر','رنگ و چسب'],e:'پختن باعث می‌شود الیاف از هم جدا شوند.'},
+{t:'b',q:'ماده‌ای که از چوب برای ساخت کاغذ جدا می‌شود چه نام دارد؟',o:['سلولز','آهن','نمک','شن'],e:'الیاف سلولز مادهٔ اصلی کاغذ است.'},
+{t:'b',q:'خمیر کاغذ شبیه کدام است؟',o:['مخلوط آبکی از الیاف ریز','تکه‌های سنگ','فلز مذاب','گل خشک'],e:'خمیر کاغذ مخلوطی از آب و الیاف ریز است.'},
+{t:'b',q:'چرا هنگام پخت دما باید در حد مناسب بماند؟',o:['تا الیاف خراب نشوند','تا دیگ سردتر شود','تا آب بپرد','دلیلی ندارد'],e:'گرمای خیلی زیاد یا خیلی کم، خمیر را خراب می‌کند.'},
+{t:'c',q:'برای سفید کردن خمیر کاغذ چه می‌کنند؟',o:['رنگ‌بری و شستشو','پخت دوباره','یخ زدن','سوزاندن'],e:'خمیر را رنگ‌بری می‌کنند تا کاغذ سفید شود.'},
+{t:'c',q:'چرا بعد از رنگ‌بری خمیر را می‌شویند؟',o:['تا مواد شیمیایی از آن خارج شود','تا سنگین شود','تا بو بگیرد','تا رنگی شود'],e:'شستشو مواد اضافه را می‌برد.'},
+{t:'c',q:'کاغذ بازیافتی از چه ساخته می‌شود؟',o:['کاغذهای باطله','نفت','شیشه','فلز'],e:'کاغذهای باطله را دوباره خمیر می‌کنند.'},
+{t:'c',q:'بازیافت کاغذ چه فایده‌ای دارد؟',o:['درخت کمتری بریده می‌شود','هوا گرم‌تر می‌شود','آب کمتر می‌شود','کاغذ گران‌تر می‌شود'],e:'با بازیافت، جنگل‌ها بیشتر می‌مانند.'},
+{t:'d',q:'غلتک‌های داغ ماشین کاغذ برای چیست؟',o:['خشک کردن کاغذ','رنگ کردن کاغذ','پختن چوب','بریدن کاغذ'],e:'غلتک‌های داغ رطوبت ورقه را می‌گیرند.'},
+{t:'d',q:'خمیر روی توری ماشین پخش می‌شود تا چه شود؟',o:['آبش خارج شود و ورقه بسازد','یخ ببندد','بسوزد','رنگی شود'],e:'آب از توری رد می‌شود و الیاف روی هم می‌نشینند.'},
+{t:'d',q:'برای حفظ جنگل بعد از بریدن درخت چه باید کرد؟',o:['درخت تازه کاشت','هیچ کاری نکرد','آتش زد','آسفالت ریخت'],e:'کاشتن درخت جدید از جنگل‌ها محافظت می‌کند.'},
+{t:'d',q:'کدام کار مصرف کاغذ را کم می‌کند؟',o:['نوشتن روی دو طرف برگه','دور انداختن برگهٔ سفید','پاره کردن دفتر نو','خرید بیشتر'],e:'استفادهٔ کامل از کاغذ جلوی هدر رفتن را می‌گیرد.'},
+{t:'m',q:'هر بسته ۵۰۰ برگ دارد. ۴ بسته چند برگ دارد؟',o:['۲۰۰۰','۱۵۰۰','۲۵۰۰','۲۰۰'],e:'۵۰۰ × ۴ = ۲۰۰۰'},
+{t:'m',q:'در هر کارتن ۵ بسته و در هر بسته ۱۰۰ برگ است. هر کارتن چند برگ دارد؟',o:['۵۰۰','۵۰','۱۰۵','۱۰۰۰'],e:'۵ × ۱۰۰ = ۵۰۰'},
+{t:'m',q:'۱۲ کارتن را در ۳ ردیف مساوی می‌چینیم. در هر ردیف چند کارتن است؟',o:['۴','۳','۹','۶'],e:'۱۲ ÷ ۳ = ۴'},
+{t:'m',q:'۱۰ کارتن داریم و ۴ تا بسته‌بندی شده‌اند. چند کارتن مانده؟',o:['۶','۴','۱۴','۵'],e:'۱۰ − ۴ = ۶'},
+{t:'s',q:'در وانت باید چه چیزی ببندیم؟',o:['کمربند ایمنی','کلاه نمدی','دستکش','عینک شنا'],e:'کمربند ایمنی در تصادف جان ما را نجات می‌دهد.'},
+{t:'s',q:'چراغ قرمز راهنمایی یعنی چه؟',o:['بایست','برو','تندتر برو','دور بزن'],e:'در چراغ قرمز باید کامل بایستیم.'},
+{t:'s',q:'در جادهٔ شیب‌دار و با بار زیاد چه کار می‌کنیم؟',o:['سرعت را کم می‌کنیم','سرعت را زیاد می‌کنیم','فرقی ندارد','موتور را خاموش می‌کنیم'],e:'وانتِ پر بار دیرتر می‌ایستد، پس آرام‌تر می‌رانیم.'},
+{t:'s',q:'بار وانت باید چگونه باشد؟',o:['محکم بسته شود','شل رها شود','خیلی بلند چیده شود','باز بماند'],e:'بار بسته‌نشده می‌افتد و خطر درست می‌کند.'}
+];
+const usedQ=new Set();
+function nextQ(tag){
+ let pool=QZ.filter(q=>q.t===tag&&!usedQ.has(q));
+ if(!pool.length){QZ.filter(q=>q.t===tag).forEach(q=>usedQ.delete(q));pool=QZ.filter(q=>q.t===tag)}
+ const q=pick(pool);usedQ.add(q);return q;
+}
+function askOne(q,label){
+ return new Promise(res=>{
+  const ov=$('#quiz');G.paused=true;
+  const opts=shuffle(q.o.map((t,i)=>({t,ok:i===0})));
+  $('#qlab').textContent=label;$('#qtxt').textContent=q.q;$('#qfb').innerHTML='';
+  const box=$('#qopts');box.innerHTML='';let done=false;
+  const finish=r=>{document.removeEventListener('keydown',kd);ov.hidden=true;G.paused=false;res(r)};
+  const choose=i=>{
+   if(done)return;done=true;const o=opts[i];const bs=box.children;
+   [...bs].forEach((b,j)=>{b.disabled=true;if(opts[j].ok)b.classList.add('good')});
+   if(!o.ok)bs[i].classList.add('bad');
+   const fb=$('#qfb');
+   const nextBtn=(txt,r)=>{const b=document.createElement('button');b.className='btn go';b.type='button';b.textContent=txt;b.style.marginTop='.8em';b.onclick=()=>finish(r);fb.appendChild(b);b.focus()};
+   if(o.ok){sfx.ok();fb.innerHTML='<div class="t" style="color:var(--green)">درست گفتی!</div>'+q.e;nextBtn('ادامه',true)}
+   else{loseHeart();fb.innerHTML='<div class="t" style="color:var(--red)">اشتباه بود. یک جان کم شد.</div>جواب درست: <b>'+opts.find(x=>x.ok).t+'</b><br>'+q.e;nextBtn(G.dead?'تمام':'سؤال بعدی',false)}
+  };
+  opts.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.className='opt';b.innerHTML='<em>'+(i+1)+'</em><span></span>';b.lastChild.textContent=o.t;b.onclick=()=>choose(i);box.appendChild(b)});
+  const kd=e=>{const k=parseInt(e.key,10);if(k>=1&&k<=4&&k<=opts.length){e.preventDefault();choose(k-1)}};
+  document.addEventListener('keydown',kd);ov.hidden=false;
+ });
+}
+async function askUntil(tag,label){
+ while(!G.dead){const r=await askOne(nextQ(tag),label);if(r)return true}
+ return false;
+}
+
+/* ---------- mini games ---------- */
+let miniRaf=0;
+function closeMini(){cancelAnimationFrame(miniRaf);$('#mini').hidden=true;G.onAct=null}
+function mini(o){
+ return new Promise(res=>{
+  const box=$('#mini'),mk=box.querySelector('.mk'),zn=box.querySelector('.zone'),pg=box.querySelector('.prog i'),mm=$('#mm');
+  $('#mt').textContent=o.title;$('#mh').textContent=o.hint;mm.textContent='';box.hidden=false;
+  const type=o.type;let hits=0,miss=0,pos=0,dirn=1,v=.5,prog=0,taps=0,tl=o.time||5,zc=.5,zw=o.zone||.2,last=performance.now();
+  const newZone=()=>{zc=rnd(.2,.8);zn.style.left=((zc-zw/2)*100)+'%';zn.style.width=(zw*100)+'%'};
+  if(type==='timing')newZone();
+  else if(type==='gauge'){zc=.55;zw=.26;zn.style.left=((zc-zw/2)*100)+'%';zn.style.width=(zw*100)+'%'}
+  else{zn.style.width='0';mk.style.display='none'}
+  if(type!=='tap')mk.style.display='';
+  const fail=()=>{miss++;mm.textContent='دقت کن! ('+fa(miss)+' از ۳ خطا)';sfx.bad();if(miss>=3){miss=0;loseHeart();if(G.dead){end(false);return true}mm.textContent='یک جان از دست رفت. دوباره تلاش کن.'}return false};
+  const end=r=>{cancelAnimationFrame(miniRaf);box.hidden=true;G.onAct=null;res(r)};
+  G.onAct=()=>{
+   if(type==='timing'){
+    if(Math.abs(pos-zc)<=zw/2){hits++;sfx.ok();mm.textContent='';pg.style.width=(hits/o.rounds*100)+'%';if(hits>=o.rounds){end(true);return}newZone()}
+    else fail();
+   }else if(type==='gauge'){v=Math.min(1.05,v+.1);sfx.step()}
+   else{taps++;sfx.step();pg.style.width=Math.min(100,taps/o.taps*100)+'%';if(taps>=o.taps){sfx.ok();end(true)}}
+  };
+  const loop=now=>{
+   if(G.dead){end(false);return}
+   const dt=Math.min(.05,(now-last)/1000);last=now;
+   if(type==='timing'){pos+=dirn*o.speed*dt;if(pos>1){pos=1;dirn=-1}if(pos<0){pos=0;dirn=1}mk.style.left='calc('+(pos*100)+'% - 2px)'}
+   else if(type==='gauge'){
+    v-=o.fall*dt;mk.style.left='calc('+(clamp(v,0,1)*100)+'% - 2px)';
+    if(Math.abs(v-zc)<=zw/2)prog+=dt/o.secs;else prog=Math.max(0,prog-dt*.12);
+    pg.style.width=Math.min(100,prog*100)+'%';
+    if(v>=1||v<=0){if(fail())return;v=.5}
+    if(prog>=1){sfx.ok();end(true);return}
+   }else{
+    tl-=dt;mm.textContent='زمان: '+fa(Math.max(0,Math.ceil(tl)))+' ثانیه';
+    if(tl<=0){taps=0;tl=o.time;pg.style.width='0';if(fail())return}
+   }
+   miniRaf=requestAnimationFrame(loop);
+  };
+  pg.style.width='0';miniRaf=requestAnimationFrame(loop);
+ });
+}
+$('#mini').addEventListener('pointerdown',e=>{e.preventDefault();if(G.onAct)G.onAct()});
+
+/* ---------- setup / guide / end ---------- */
+const SW=[['hair','مو',LOOK.hair],['skin','پوست',LOOK.skin],['shirt','پیراهن',LOOK.shirt],['pants','شلوار',LOOK.pants]];
+function drawPv(){const c=$('#pv').getContext('2d');c.clearRect(0,0,34,38);drawChar(c,17,36,A,1,0)}
+function buildOpts(){
+ const o=$('#opts');o.innerHTML='';
+ SW.forEach(([k,lab,arr])=>{
+  const d=document.createElement('div');d.className='lb';d.innerHTML='<span>'+lab+'</span>';
+  arr.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='sw'+(A[k]===i?' on':'');b.style.background=c;b.setAttribute('aria-label',lab+' '+fa(i+1));b.onclick=()=>{A[k]=i;buildOpts();drawPv()};d.appendChild(b)});
+  o.appendChild(d);
+ });
+ const d=document.createElement('div');d.className='lb';d.innerHTML='<span>کلاه</span>';
+ LOOK.hat.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.className='sw txt'+(A.hat===i?' on':'');b.textContent=t;b.onclick=()=>{A.hat=i;buildOpts();drawPv()};d.appendChild(b)});
+ o.appendChild(d);
+}
+function openSetup(mode){
+ return new Promise(res=>{
+  const ov=$('#setup');G.paused=true;buildOpts();drawPv();$('#nm').value=A.name;
+  $('#sTitle').textContent=mode==='new'?'کارخانه کاغذسازی':'رختکن';
+  $('#sGo').textContent=mode==='new'?'شروع بازی':'ادامه';
+  $('#sGo').onclick=()=>{A.name=$('#nm').value.trim().slice(0,14);save();ov.hidden=true;G.paused=false;res()};
+  ov.hidden=false;
+ });
+}
+let gp=false;
+function openGuide(){if(!$('#guide').hidden)return;gp=G.paused;G.paused=true;$('#guide').hidden=false;$('#gClose').focus()}
+function closeGuide(){$('#guide').hidden=true;G.paused=gp}
+$('#gClose').onclick=closeGuide;$('#sGuide').onclick=openGuide;
+$('#helpbtn').onclick=()=>{if($('#guide').hidden){if($('#quiz').hidden&&$('#setup').hidden&&$('#end').hidden)openGuide()}else closeGuide()};
+
+function showEnd(win){
+ const ov=$('#end'),par=420;
+ G.run=false;closeMini();setPrompt(null);
+ let stars=0;
+ if(win){stars=G.time<=par?3:G.time<=par*1.5?2:1;if(G.lostHearts>=2)stars=Math.max(1,stars-1);if(G.money>best){best=G.money;save()}sfx.win()}
+ $('#eTitle').textContent=win?'روز '+fa(G.day)+' با موفقیت تمام شد':'جان‌هایت تمام شد';
+ $('#eStars').innerHTML=win?[1,2,3].map(i=>'<span class="'+(i<=stars?'':'off')+'">★</span>').join(''):'';
+ const t=Math.floor(G.time),m=Math.floor(t/60),s=t%60;
+ $('#stats2').innerHTML=win?
+  '<div>زمان<b>'+fa(m)+':'+fa(String(s).padStart(2,'0'))+'</b></div><div>فروش امروز<b>'+fa(G.earned)+' هزار تومان</b></div><div>کل پول<b>'+fa(G.money)+' هزار تومان</b></div><div>جان از دست رفته<b>'+fa(G.lostHearts)+'</b></div>':
+  '<div style="grid-column:1/-1;display:block">بیشتر دقت کن و جواب سؤال‌ها را از مرحله‌ها یاد بگیر. دوباره امتحان کن!</div>';
+ const b=$('#eBtns');b.innerHTML='';
+ const add=(txt,cls,fn)=>{const x=document.createElement('button');x.type='button';x.className='btn '+cls;x.textContent=txt;x.onclick=fn;b.appendChild(x);return x};
+ const first=win?add('روز بعد (کارتن بیشتر)','go',()=>{ov.hidden=true;G.day++;startDay()}):add('دوباره امتحان کن','go',()=>{ov.hidden=true;startDay()});
+ add('منوی اصلی','alt',()=>{ov.hidden=true;toMenu()});
+ ov.hidden=false;first.focus();
+}
+
+/* ---------- day flow ---------- */
+function startDay(){
+ G.step=0;G.hearts=3;G.time=0;G.lostHearts=0;G.dead=false;G.boxes=0;G.scene='factory';G.x=70;G.dir=1;G.drive=null;G.earned=0;
+ G.need=Math.min(5,2+G.day);G.price=pick([150,200,250,300]);
+ inv=Array(8).fill(null);renderBar();camX=0;lastObj='';
+ G.run=true;G.paused=false;G.lock=false;updHud();updObj();
+ toast('روز '+fa(G.day)+': '+fa(G.need)+' کارتن کاغذ بساز و بفروش!',3600);
+}
+async function toMenu(){
+ G.run=false;G.scene='menu';G.day=1;G.money=0;setPrompt(null);inv=Array(8).fill(null);renderBar();updHud();updObj();
+ await openSetup('new');startDay();
+}
+
+/* ---------- stations ---------- */
+const helmetOk=()=>{if(A.hat!==1){toast('کلاه ایمنی نداری! در رختکن کلاه ایمنی بپوش.');sfx.bad();return false}return true};
+async function work(o){
+ if(G.step!==o.step){toast(G.step<o.step?o.early:'این مرحله را تمام کرده‌ای. برو مرحلهٔ بعد.');return}
+ if(o.helmet&&!helmetOk())return;
+ if(!(await mini(o.mini)))return;
+ if(!(await askUntil(o.tag,o.label)))return;
+ const n=removeAll(o.from);addItem(o.to,n);G.step=o.step+1;sfx.ok();toast(o.done);
+}
+const STN=[
+{id:'locker',x:130,name:'رختکن',ly:150,prompt:()=>'تغییر لباس',act:async()=>{await openSetup('wardrobe')}},
+{id:'yard',x:360,name:'انبار چوب',ly:150,prompt:()=>G.step===0?'برداشتن تنه ('+fa(countOf('log'))+'/'+fa(G.need)+')':'انبار چوب',act:async()=>{
+  if(G.step!==0){toast('تنه‌ها را برداشته‌ای. برو سراغ مرحلهٔ بعد.');return}
+  await sleep(280);if(G.dead)return;addItem('log');sfx.step();
+  if(countOf('log')>=G.need){G.step=1;toast('همهٔ تنه‌ها آماده شد. برو پوست‌کن و خردکن!')}else toast(fa(countOf('log'))+' از '+fa(G.need)+' تنه',1200)}},
+{id:'chip',x:760,name:'پوست‌کن و خردکن',ly:140,prompt:()=>'روشن کردن دستگاه',act:()=>work({step:1,helmet:true,from:'log',to:'chips',tag:'a',label:'سؤال از مرحلهٔ خردکن',early:'اول باید تنه‌ها را از انبار چوب برداری.',done:'خرده‌چوب آماده است. برو دیگ پخت!',
+  mini:{type:'timing',title:'خردکن: وقتی خط در ناحیهٔ سبز است E بزن',hint:'۳ بار درست بزن. سه خطا یعنی یک جان کم.',rounds:3,zone:.26,speed:1.0}})},
+{id:'cook',x:1180,name:'دیگ پخت خمیر',ly:112,prompt:()=>'کنترل دما',act:()=>work({step:2,helmet:true,from:'chips',to:'pulp',tag:'b',label:'سؤال از مرحلهٔ پخت خمیر',early:'اول خرده‌چوب را از خردکن بگیر.',done:'خمیر پخته شد. برو رنگ‌بری!',
+  mini:{type:'gauge',title:'دیگ پخت: دما را در ناحیهٔ سبز نگه دار',hint:'E را پشت‌سرهم بزن. اگر دما خیلی بالا یا پایین شود، خطا حساب می‌شود.',fall:.3,secs:4}})},
+{id:'bleach',x:1600,name:'رنگ‌بری و شستشو',ly:150,prompt:()=>'پمپ کردن',act:()=>work({step:3,helmet:false,from:'pulp',to:'white',tag:'c',label:'سؤال از مرحلهٔ رنگ‌بری',early:'اول خمیر پخته را از دیگ بگیر.',done:'خمیر سفید شد. برو ماشین کاغذ!',
+  mini:{type:'tap',title:'پمپ مواد شستشو را تند بزن',hint:'در ۶ ثانیه ۱۸ بار E بزن',taps:18,time:6}})},
+{id:'machine',x:2080,name:'ماشین کاغذ',ly:130,prompt:()=>'راه‌اندازی ماشین',act:()=>work({step:4,helmet:true,from:'white',to:'paper',tag:'d',label:'سؤال از ماشین کاغذ',early:'اول خمیر سفید را از رنگ‌بری بگیر.',done:'رول کاغذ آماده است. برو بسته‌بندی!',
+  mini:{type:'timing',title:'ماشین کاغذ: لحظهٔ درست را بگیر',hint:'۴ بار درست بزن. ناحیهٔ سبز کوچک‌تر و تندتر است.',rounds:4,zone:.16,speed:1.3}})},
+{id:'pack',x:2560,name:'برش و بسته‌بندی',ly:150,prompt:()=>'بسته‌بندی',act:()=>work({step:5,helmet:false,from:'paper',to:'box',tag:'m',label:'سؤال از بسته‌بندی',early:'اول رول کاغذ را از ماشین بگیر.',done:'کارتن‌ها بسته شد. ببر رمپ بارگیری!',
+  mini:{type:'tap',title:'کاغذها را سریع در کارتن بچین',hint:'در ۷ ثانیه ۲۴ بار E بزن',taps:24,time:7}})},
+{id:'van',x:2900,name:'رمپ بارگیری',ly:128,prompt:()=>G.step===6?'بارگیری کارتن‌ها':G.step===7?'سوار شدن':'وانت',act:async()=>{
+  if(G.step<6){toast('اول کارتن‌ها را آماده کن.');return}
+  if(G.step===6){await sleep(500);G.boxes=removeAll('box');G.step=7;sfx.ok();toast(fa(G.boxes)+' کارتن در وانت بار شد. حالا سوار شو!');return}
+  if(G.step===7){await sleep(400);startDrive()}}}
+];
+const CTY=[
+{id:'shop',x:1040,name:'لوازم‌التحریر نگین',ly:108,prompt:()=>G.step===9?'فروش کارتن‌ها':'مغازه',act:()=>sell()}
+];
+function startDrive(){
+ G.scene='drive';G.step=8;const d={dist:0,len:3000,speed:0,y:0,vy:0,obs:[],cp:false,hold:false,wheel:0,cd:0};
+ let x=420;while(x<d.len-320){d.obs.push({x,t:pick(['rock','cone','hole']),hit:false});x+=rnd(230,340)}
+ G.drive=d;setPrompt(null);lastObj='';toast('حرکت! با E از روی مانع‌ها بپر.',2600);
+}
+function startCity(){
+ G.scene='city';G.step=9;G.x=120;G.dir=1;G.drive=null;addItem('box',G.boxes);lastObj='';
+ toast('به شهر رسیدی! کارتن‌ها را ببر مغازه.',3000);
+}
+function numQ(q,c,e,P){
+ const set=[c],cand=[c+P,Math.max(10,c-P),c+100,c+50,c*2,c+10,c+200,Math.max(5,c-50)];
+ for(const v of cand){if(set.length>=4)break;if(v>0&&!set.includes(v))set.push(v)}
+ return{q,o:set.map(v=>fa(v)),e};
+}
+async function sell(){
+ if(G.step!==9){return}
+ const n=countOf('box'),P=G.price,total=n*P;
+ toast('فروشنده: سلام! حساب کنیم؟',1600);await sleep(700);
+ const q1=numQ('هر کارتن '+fa(P)+' هزار تومان است. '+fa(n)+' کارتن چند هزار تومان می‌شود؟',total,fa(P)+' × '+fa(n)+' = '+fa(total),P);
+ let ok=false;while(!G.dead&&!ok)ok=await askOne(q1,'حساب‌وکتاب در مغازه');
+ if(G.dead)return;
+ const q2=numQ('مغازه‌دار با یک اسکناس ۲۰۰۰ هزار تومانی حساب می‌کند. شما چند هزار تومان باید پس بدهید؟',2000-total,'۲۰۰۰ − '+fa(total)+' = '+fa(2000-total),P);
+ ok=false;while(!G.dead&&!ok)ok=await askOne(q2,'حساب‌وکتاب در مغازه');
+ if(G.dead)return;
+ removeAll('box');G.money+=total;G.earned=total;G.step=10;
+ showEnd(true);
+}
+
+/* ---------- drawing ---------- */
+const busy=id=>G.lock&&G.near&&G.near.id===id;
+function bgFactory(){
+ R(0,0,W,H,'#0e1118');
+ R(0,0,W,28,'#232b3a');R(0,28,W,3,'#141a26');
+ for(let wx=-(camX%160);wx<W;wx+=160)R(wx,0,5,28,'#38425a');
+ for(let wx=-(camX%240)+60;wx<W;wx+=240){R(wx+8,28,1,10,'#555d6e');R(wx,38,18,5,'#e3a63b');R(wx+2,43,14,2,'#f3d58a')}
+ R(0,31,W,170,'#d9d3bb');R(0,31,W,3,'#bfb8a1');
+ const o=Math.floor(camX/120)*120;
+ for(let wx=o-120;wx<camX+W+120;wx+=120){const sx=wx-camX+40;R(sx-2,64,36,42,'#b3ac94');R(sx,66,32,38,'#2f5f9a');R(sx,66,32,13,'#4f8cc4');R(sx+15,66,2,38,'#b3ac94');R(sx,104,32,2,'#9d9680')}
+ R(0,150,W,2,'#bdb6a0');R(0,152,W,48,'#cac4ac');
+ for(let wx=-(camX%80);wx<W;wx+=80)R(wx,152,2,48,'#bdb6a0');
+ R(0,200,W,70,'#2a3140');R(0,200,W,3,'#46a39a');R(0,203,W,2,'#1c2230');
+ for(let wx=-(camX%48);wx<W;wx+=48)R(wx,238,24,2,'#343e52');
+ if(camX<60){for(let i=0;i<10;i++)RW(i*3,40,2,160,i%2?'#2f5f9a':'#3d73b5');RW(30,40,3,160,'#1b3a63')}
+}
+function shadow(x,w){cx.fillStyle='rgba(0,0,0,.22)';cx.fillRect(Math.round(x-w/2-camX),GY-1,w,5)}
+function stLocker(x){shadow(x,60);for(let i=0;i<4;i++){const lx=x-26+i*13;RW(lx,GY-52,12,52,i===2?'#10182a':'#2f4a73');RW(lx,GY-52,12,3,'#3d5f94');if(i!==2){RW(lx+3,GY-44,6,1,'#1b2c47');RW(lx+3,GY-41,6,1,'#1b2c47');RW(lx+8,GY-26,2,4,'#cfd6e2')}}
+ RW(x-8,GY-40,10,16,'#f0c230');RW(x-8,GY-26,10,2,'#c79a1a')}
+function stYard(x){shadow(x,84);for(let r=0;r<4;r++){const cnt=4-r;for(let i=0;i<cnt;i++){const lx=x-36+r*9+i*18,ly=GY-8-r*8;RW(lx,ly,18,8,'#7b4d22');RW(lx,ly,18,1,'#9a6a35');RW(lx+14,ly+1,4,6,'#e1bd84');RW(lx+15,ly+3,2,2,'#b98c52')}}}
+function stChip(x){
+ shadow(x,80);const b=busy('chip'),sh=b?Math.round(Math.sin(G.t*40)):0;
+ RW(x-32+sh,GY-44,64,44,'#55627a');RW(x-32+sh,GY-44,64,4,'#6f7e99');RW(x-32,GY-6,64,6,'#323c50');
+ RW(x-28+sh,GY-62,56,4,'#7a8aa6');RW(x-24+sh,GY-58,48,14,'#47536a');
+ RW(x-20,GY-34,24,14,'#10182a');RW(x-18,GY-32,20,10,'#1c2a44');
+ const gx=x+18,gy=GY-26,a=G.t*(b?7:1.5);disc(gx,gy,9,'#8a96ad');disc(gx,gy,5,'#5b6780');
+ for(let k=0;k<6;k++){const an=a+k*Math.PI/3;RW(gx+Math.round(Math.cos(an)*10)-1,gy+Math.round(Math.sin(an)*10)-1,3,3,'#8a96ad')}
+ RW(x-62,GY-12,30,5,'#2a303d');for(let i=0;i<3;i++)RW(x-62+((G.t*20+i*10)%30),GY-12,2,5,'#4a5368');
+ if(G.step===1)RW(x-58,GY-19,18,7,'#7b4d22');
+ RW(x+34,GY-6,22,6,'#c7a46a');RW(x+38,GY-10,14,4,'#d9b982');RW(x+43,GY-13,6,3,'#e0c28c');
+}
+function stCook(x){
+ shadow(x,60);RW(x-22,GY-84,44,84,'#7f93ad');RW(x-22,GY-84,6,84,'#a2b3c9');RW(x+16,GY-84,6,84,'#5d6f89');
+ RW(x-18,GY-92,36,8,'#7f93ad');RW(x-12,GY-96,24,4,'#7f93ad');
+ for(let i=0;i<4;i++)RW(x-22,GY-70+i*18,44,2,'#4c5b73');
+ disc(x,GY-52,9,'#ece6cf');disc(x,GY-52,7,'#1c2230');RW(x-1+Math.round(busy('cook')?Math.sin(G.t*9)*4:0),GY-57,2,6,'#d1543f');
+ RW(x+22,GY-30,26,5,'#6d7f99');RW(x+46,GY-30,5,30,'#6d7f99');RW(x+30,GY-34,6,4,'#d1543f');
+ for(let i=0;i<3;i++){const t=(G.t*.6+i*.33)%1;disc(x-4+i*8,GY-102-t*30,3+t*3,'rgba(236,230,207,'+(.75-t*.75).toFixed(2)+')')}
+}
+function stBleach(x){
+ shadow(x,84);RW(x-38,GY-30,34,30,'#6d7f99');RW(x-36,GY-34,30,6,'#ece6cf');RW(x-38,GY-30,34,3,'#8c9eb8');
+ RW(x+4,GY-30,34,30,'#6d7f99');RW(x+6,GY-34,30,6,'#d8c690');RW(x+4,GY-30,34,3,'#8c9eb8');
+ RW(x-44,GY-74,90,5,'#6d7f99');RW(x-20,GY-69,5,35,'#6d7f99');RW(x+20,GY-69,5,35,'#6d7f99');
+ RW(x-18,GY-68+(G.t*50)%30,2,3,'#ece6cf');RW(x+22,GY-68+(G.t*50+15)%30,2,3,'#d8c690');
+ if(busy('bleach')){for(let i=0;i<4;i++)RW(x-34+i*8,GY-38-((G.t*30+i*7)%10),3,3,'#fff')}
+}
+function stMachine(x){
+ const L=x-76,b=busy('machine'),sp=b?40:10;shadow(x,170);
+ RW(L,GY-6,152,6,'#323c50');for(let i=0;i<6;i++)RW(L+6+i*28,GY-30,4,24,'#47536a');
+ RW(L,GY-34,152,4,'#2a303d');
+ for(let i=0;i<19;i++)RW(L+((i*8+G.t*sp)%146),GY-38,6,4,'#f4f1e6');
+ for(let i=0;i<5;i++){const rx=L+14+i*30,ry=GY-46,an=G.t*(b?9:3)+i;disc(rx,ry,10,'#8a96ad');disc(rx,ry,6,'#5b6780');RW(rx+Math.round(Math.cos(an)*4),ry+Math.round(Math.sin(an)*4),2,2,'#d9d3bb')}
+ disc(L-6,GY-52,16,'#6d7f99');disc(L-6,GY-52,11,'#8c9eb8');disc(L-6,GY-52,3,'#323c50');
+ disc(L+158,GY-24,14,'#f4f1e6');disc(L+158,GY-24,10,'#e0dcc8');disc(L+158,GY-24,3,'#9d9680');
+ RW(L+10,GY-72,120,6,'#55627a');RW(L+20,GY-66,4,14,'#55627a');RW(L+116,GY-66,4,14,'#55627a');
+}
+function stPack(x){
+ shadow(x,92);RW(x-44,GY-24,88,5,'#8a6a42');RW(x-40,GY-19,4,19,'#5c4528');RW(x+36,GY-19,4,19,'#5c4528');
+ for(let i=0;i<5;i++)RW(x-40,GY-30-i*3,26,3,i%2?'#f4f1e6':'#e0dcc8');
+ for(let i=0;i<3;i++){const bx=x-6+i*16;RW(bx,GY-36,14,12,'#b98a52');RW(bx,GY-36,14,3,'#d2a468');RW(bx+6,GY-36,2,12,'#e8d6a8')}
+ RW(x+2,GY-62,3,24,'#55627a');RW(x-24,GY-64,50,3,'#55627a');
+ if(busy('pack'))RW(x-2,GY-44+Math.round(Math.abs(Math.sin(G.t*12))*8),9,3,'#d1543f');
+}
+function van(sx,gy,boxes,ang,driver){
+ sx=Math.round(sx);gy=Math.round(gy);
+ for(let i=0;i<Math.min(boxes,9);i++){const c=i%3,r=Math.floor(i/3),bx=sx-40+c*14,by=gy-30-r*10;R(bx,by,13,10,'#b98a52');R(bx,by,13,2,'#d2a468');R(bx+5,by,2,10,'#e8d6a8')}
+ R(sx-42,gy-24,46,4,'#24497a');
+ R(sx-42,gy-20,84,12,'#2d5f9a');R(sx-42,gy-20,84,2,'#4f8cc4');R(sx-42,gy-9,84,2,'#1b3a63');
+ R(sx+4,gy-48,38,30,'#2d5f9a');R(sx+4,gy-48,38,3,'#4f8cc4');
+ R(sx+8,gy-45,26,17,'#bfe3ee');
+ if(driver)drawChar(cx,sx+21,gy-12,A,1,0);
+ R(sx+4,gy-28,38,10,'#2d5f9a');R(sx+34,gy-45,6,17,'#9fc9d6');R(sx+4,gy-28,38,2,'#4f8cc4');
+ R(sx+40,gy-24,3,4,'#f3d58a');R(sx+38,gy-12,6,4,'#8a96ad');
+ for(const wx of [sx-26,sx+24]){discS(wx,gy-6,7,'#14161c');discS(wx,gy-6,3,'#8a96ad');R(wx+Math.round(Math.cos(ang)*3)-1,gy-6+Math.round(Math.sin(ang)*3)-1,2,2,'#14161c')}
+}
+function stDock(x){
+ R(x-70-camX,GY-80,150,80,'#10182a');
+ for(let i=0;i<15;i++)RW(x-70+i*10,GY-4,5,4,'#e3a63b');
+ RW(x-70,GY-84,150,4,'#55627a');
+ van(x+62-camX,GY+8,G.step>=7?G.boxes:0,0,false);
+}
+const DRAW={locker:stLocker,yard:stYard,chip:stChip,cook:stCook,bleach:stBleach,machine:stMachine,pack:stPack,van:stDock};
+const TARGET={0:'yard',1:'chip',2:'cook',3:'bleach',4:'machine',5:'pack',6:'van',7:'van',9:'shop'};
+
+function drawPlayer(){
+ const walking=(G.mvx||0)!==0;
+ const fr=walking?[1,0,3,0][Math.floor(G.t*8)%4]:0;
+ drawChar(cx,G.x-camX,FY,A,G.dir,fr);
+}
+function npc(x,fl,look,dir,walk){drawChar(cx,x-camX,FY-6,look,dir,walk?[1,0,3,0][Math.floor(G.t*8)%4]:0)}
+const N1=NPC(5,3,1,2,0),N2=NPC(1,1,3,1,2),N3=NPC(2,0,0,3,0);
+
+function drawFactory(){
+ bgFactory();
+ for(const st of STN)DRAW[st.id](st.x);
+ drawPlayer();
+}
+function drawDrive(){
+ const d=G.drive;
+ ['#2b3a5a','#33466b','#3f5a82','#58779b','#8fa6b0','#d9c79a','#e8d9ac'].forEach((c,i)=>R(0,i*26,W,27,c));
+ discS(390,128,15,'#f3d58a');discS(390,128,10,'#fff0b8');
+ const off=d.dist*.08;
+ for(let x=0;x<W;x+=4){const h=34+Math.sin((x+off)*.02)*14+Math.sin((x+off)*.05)*6;R(x,184-h,4,h,'#2a3d5a')}
+ const o2=d.dist*.3;
+ for(let i=0;i<14;i++){const tx0=(((i*46-o2)%644)+644)%644-60;R(tx0+5,174,3,10,'#3b2a1d');R(tx0,162,13,12,'#1f4a3a');R(tx0+2,152,9,12,'#256052')}
+ R(0,184,W,90,'#2f5a3a');R(0,206,W,42,'#3a3f4d');R(0,206,W,2,'#8a96ad');R(0,246,W,2,'#8a96ad');
+ for(let x=-(d.dist%40);x<W;x+=40)R(x,227,20,2,'#e3d9a8');
+ const fx=70-d.dist*.6;if(fx>-140){R(fx,150,100,34,'#3a4258');R(fx+76,112,10,40,'#4a5268');R(fx+20,140,60,10,'#323a4e');for(let i=0;i<3;i++)discS(fx+81+i*3,106-i*9-((G.t*8)%8),4+i,'rgba(220,220,220,.5)')}
+ const rem=d.len-d.dist;
+ if(rem<650){const bx=W-(650-rem)*.75;for(let i=0;i<9;i++){const h=34+((i*37)%41),x=bx+i*26;R(x,184-h,22,h,'#3b4b6c');R(x,184-h,22,3,'#51658c');for(let r=0;r<h/10-1;r++){R(x+4,184-h+7+r*9,4,4,'#f3d58a');R(x+13,184-h+7+r*9,4,4,'#f3d58a')}}}
+ for(const o of d.obs){const sx=110+(o.x-d.dist);if(sx<-30||sx>W+30)continue;
+  if(o.t==='rock'){discS(sx,231,7,'#6b7280');discS(sx-2,229,4,'#8a93a3')}
+  else if(o.t==='cone'){R(sx-5,236-12,10,12,'#e0742f');R(sx-3,236-8,6,2,'#fff');R(sx-7,234,14,3,'#b85a20')}
+  else{R(sx-14,233,28,5,'#14161c');R(sx-14,232,28,1,'#2a2f3a')}}
+ const sh=shake>0?Math.round((Math.random()-.5)*shake):0;
+ van(110+sh,236-d.y+(d.speed>5?Math.round(Math.sin(G.t*30)*.6):0),G.boxes,d.wheel,true);
+}
+function building(x,w,h,wall,awn,name){
+ RW(x-w/2,GY-h,w,h,wall);RW(x-w/2,GY-h,w,4,shade(wall,-30));
+ for(let i=0;i<Math.floor(w/14);i++)RW(x-w/2+i*14,GY-h*.62,14,13,i%2?awn:'#ece6cf');
+ RW(x-12,GY-52,24,52,'#10182a');RW(x-10,GY-50,20,48,'#7fb8c8');
+ RW(x-w/2+6,GY-h*.62+20,w/2-24,36,'#7fb8c8');
+}
+function drawCity(){
+ R(0,0,W,150,'#8fb6d0');R(0,100,W,50,'#b4d0de');
+ for(let i=0;i<3;i++){const cxx=(((i*210-camX*.2)%720)+720)%720-80;R(cxx,40+i*16,50,8,'#f2f6f8');R(cxx+10,34+i*16,30,8,'#f2f6f8')}
+ const k0=Math.floor(camX*.5/70);
+ for(let i=-1;i<9;i++){const k=i+k0,bx=i*70-((camX*.5)%70),h=50+(((k*37)%47)+47)%47,cols=['#6e7f9a','#5f7088','#7b8aa3'];R(bx,200-h,62,h,cols[((k%3)+3)%3]);for(let r=0;r<h/12-1;r++)for(let c=0;c<4;c++)R(bx+6+c*14,200-h+8+r*12,6,6,'#cfe3ec')}
+ R(0,200,W,70,'#3a3f4d');R(0,200,W,16,'#9a96a0');R(0,216,W,2,'#6a6670');
+ for(let x=-(camX%50);x<W;x+=50)R(x,246,24,2,'#e3d9a8');
+ building(420,96,112,'#d9b27a','#e3a63b');
+ building(720,100,124,'#c9d3de','#46a39a');
+ building(1040,140,126,'#e7dcc0','#d1543f');
+ building(1270,90,118,'#b7a0c8','#6fae4f');
+ RW(1040-60,GY-122,120,18,'#2d5f9a');
+ for(let i=0;i<3;i++){RW(1040-58+i*14,GY-60,12,10,'#b98a52');RW(1040-58+i*14,GY-60,12,2,'#d2a468')}
+ van(70-camX,GY+14,0,0,false);
+ npc(990,0,N1,1,false);npc(1088,0,N2,-1,false);
+ npc(300+((G.t*22)%800),0,N3,1,true);npc(1250-((G.t*18)%900),0,N1,-1,true);
+ drawPlayer();
+}
+function drawLabels(){
+ tc.clearRect(0,0,tx.width,tx.height);
+ if(G.scene==='drive'||!G.run&&G.scene==='menu')return;
+ const list=G.scene==='factory'?STN:CTY,tgt=TARGET[G.step];
+ for(const st of list){const sx=st.x-camX;if(sx<-70||sx>W+70)continue;
+  const isT=st.id===tgt||(st.id==='locker'&&G.step===0&&A.hat!==1);
+  T(st.name,sx,st.ly,7.4,isT?'#ffd77a':'#ece6cf','center',800,'rgba(10,12,17,.8)');
+  if(isT)T('▼',sx,st.ly+13+Math.round(Math.sin(G.t*6)*2),8,'#e3a63b','center',800)}
+ if(A.name)T(A.name,G.x-camX,FY-37,6.2,'#ece6cf','center',700,'rgba(10,12,17,.6)');
+ if(G.scene==='city'){T('وانت من',70-camX,GY-50,6.2,'#ece6cf','center',700,'rgba(10,12,17,.6)')}
+}
+function draw(){
+ if(G.scene==='drive'&&G.drive)drawDrive();
+ else if(G.scene==='city')drawCity();
+ else if(G.scene==='factory')drawFactory();
+ else{bgFactory();}
+ drawLabels();
+}
+
+/* ---------- update, input, boot ---------- */
+const keys={left:false,right:false};
+let hudT=0;
+function crash(d){
+ shake=7;sfx.hit();d.speed*=.35;
+ if(G.boxes>1){G.boxes--;toast('یک کارتن از وانت افتاد!')}
+ else{loseHeart();toast('به مانع خوردی! یک جان کم شد.')}
+}
+function jump(){const d=G.drive;if(d&&d.y===0&&!d.hold){d.vy=210;d.y=.01;sfx.step()}}
+function updateDrive(dt){
+ const d=G.drive;if(!d)return;
+ if(d.hold){d.speed=0;return}
+ d.speed=Math.min(125,d.speed+dt*90);
+ d.dist+=d.speed*dt;d.wheel+=d.speed*dt*.2;
+ if(d.y>0||d.vy>0){d.vy-=520*dt;d.y+=d.vy*dt;if(d.y<=0){d.y=0;d.vy=0}}
+ for(const o of d.obs){if(o.hit)continue;const sx=110+(o.x-d.dist);if(Math.abs(sx-110)<13&&d.y<9){o.hit=true;crash(d)}}
+ if(!d.cp&&d.dist>d.le
